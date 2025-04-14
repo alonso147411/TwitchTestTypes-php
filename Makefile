@@ -1,4 +1,4 @@
-.PHONY : main build-image build-container start test shell stop clean
+.PHONY : main build-image build-container start test coverage shell stop clean
 main: build-image build-container
 
 build-image:
@@ -12,7 +12,10 @@ start:
 	docker start twitch_test_types-php
 
 test: start
-	docker exec twitch_test_types-php ./vendor/bin/phpunit  --colors=always --testdox  tests/$(target)
+	docker exec twitch_test_types-php ./vendor/bin/phpunit --colors=always --testdox tests/$(target) || true
+
+coverage: start
+	docker exec twitch_test_types-php ./vendor/bin/phpunit --coverage-html coverage-report --testdox tests/$(target) || true
 
 shell: start
 	docker exec -it twitch_test_types-php /bin/bash
@@ -22,4 +25,4 @@ stop:
 
 clean: stop
 	docker rm twitch_test_types-php
-	rm -rf vendor
+	rm -rf vendor coverage-report

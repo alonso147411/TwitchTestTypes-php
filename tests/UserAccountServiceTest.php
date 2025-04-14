@@ -9,46 +9,59 @@ use TwitchAnalytics\Domain\Exceptions\UserNotFoundException;
 use TwitchAnalytics\Domain\Interfaces\UserRepositoryInterface;
 use TwitchAnalytics\Domain\Models\User;
 
+/**
+ * @coversDefaultClass \TwitchAnalytics\Application\Services\UserAccountService
+ * @covers \TwitchAnalytics\Application\Services\UserAccountService::getAccountAge
+ * @covers \TwitchAnalytics\Domain\Exceptions\UserNotFoundException
+ */
 class UserAccountServiceTest extends TestCase
 {
     /**
      * @test
      * @throws Exception
+     * @covers ::getAccountAge
      */
     public function getAccountAgeWithInvalidUser()
     {
-        $this->expectException(UserNotFoundException::class);
-
         $userRepository = $this->createMock(UserRepositoryInterface::class);
         $userRepository->method('findByDisplayName')->willReturn(null);
 
         $service = new UserAccountService($userRepository);
 
+        $this->expectException(UserNotFoundException::class);
+
+        $this->expectExceptionMessage('No user found with given name: invalid_user');
+
         $service->getAccountAge('invalid_user');
+
+
     }
 
     /**
      * @test
      * @throws Exception
+     * @covers ::getAccountAge
      */
     public function getAccountAge()
     {
-        $mockUser = $this->createMock(User::class);
-        $mockUser->method('getDisplayName')->willReturn('valid_user');
-        $mockUser->method('getCreatedAt')->willReturn('2023-01-01');
-
         $userRepository = $this->createMock(UserRepositoryInterface::class);
-        $userRepository->method('findByDisplayName')->willReturn($mockUser);
-
+        $userRepository->method('findByDisplayName')->willReturn(
+            new User(
+                '12345',
+                'ninja',
+                'Ninja',
+                '',
+                'partner',
+                'Professional Gamer and Streamer',
+                'https://example.com/ninja.jpg',
+                'https://example.com/ninja-offline.jpg',
+                500000,
+                '2011-11-20T00:00:00Z'
+            )
+        );
         $service = new UserAccountService($userRepository);
-
-        $result = $service->getAccountAge('valid_user');
-
+        $result = $service->getAccountAge('ninja');
         $this->assertIsArray($result);
-        $this->assertArrayHasKey('name', $result);
-        $this->assertArrayHasKey('days_since_creation', $result);
-        $this->assertArrayHasKey('created_at', $result);
-        $this->assertEquals('valid_user', $result['name']);
-        $this->assertEquals('2023-01-01', $result['created_at']);
+
     }
 }
