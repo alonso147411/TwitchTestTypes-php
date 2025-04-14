@@ -16,26 +16,6 @@ use TwitchAnalytics\Domain\Models\User;
  */
 class UserAccountServiceTest extends TestCase
 {
-    /**
-     * @test
-     * @throws Exception
-     * @covers ::getAccountAge
-     */
-    public function getAccountAgeWithInvalidUser()
-    {
-        $userRepository = $this->createMock(UserRepositoryInterface::class);
-        $userRepository->method('findByDisplayName')->willReturn(null);
-
-        $service = new UserAccountService($userRepository);
-
-        $this->expectException(UserNotFoundException::class);
-
-        $this->expectExceptionMessage('No user found with given name: invalid_user');
-
-        $service->getAccountAge('invalid_user');
-
-
-    }
 
     /**
      * @test
@@ -64,4 +44,26 @@ class UserAccountServiceTest extends TestCase
         $this->assertIsArray($result);
 
     }
+
+    /**
+     * @test
+     * @throws Exception
+     * @covers ::getAccountAge
+     */
+    public function getAccountAgeWithInvalidUser()
+    {
+        $userRepository = $this->createMock(UserRepositoryInterface::class);
+        $userRepository->method('findByDisplayName')->willReturn(null);
+
+        $service = new UserAccountService($userRepository);
+
+        $this->expectException(UserNotFoundException::class);
+
+        $this->expectExceptionMessage('No user found with given name: invalid_user');
+
+        $service->getAccountAge('invalid_user');
+
+
+    }
+
 }
