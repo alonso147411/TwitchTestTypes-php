@@ -1,6 +1,6 @@
 <?php
 
-namespace TwitchAnalytics\Aplication\Services;
+namespace TwitchAnalytics\Tests\Unit\Application\Service;
 
 use DateTime;
 use Mockery;
