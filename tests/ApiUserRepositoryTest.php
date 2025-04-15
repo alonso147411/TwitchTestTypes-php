@@ -1,25 +1,18 @@
 <?php
 
-namespace TwitchAnalytics\Tests;
+namespace TwitchAnalytics\Infrastructure\Repositories;
 
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 use TwitchAnalytics\Domain\Models\User;
 use TwitchAnalytics\Infrastructure\ApiClient\TwitchApiClientInterface;
-use TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository;
 
-/**
- *  @coversDefaultClass \TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository
- *  @covers \TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository::findByDisplayName
- * /
- */
 
 class ApiUserRepositoryTest extends TestCase
 {
     /**
      * @test
      * @throws Exception
-     * @covers ::findByDisplayName
      */
 
     public function findByDisplayNameWithValidUser(): void
@@ -53,7 +46,6 @@ class ApiUserRepositoryTest extends TestCase
     /**
      * @test
      * @throws Exception
-     * @covers ::findByDisplayName
      */
     public function findByDisplayNameWithInvalidUser(): void
     {

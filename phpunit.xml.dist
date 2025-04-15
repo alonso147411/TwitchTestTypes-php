@@ -5,17 +5,14 @@
          colors="true"
          cacheDirectory=".phpunit.cache"
          executionOrder="depends,defects"
-         requireCoverageMetadata="true"
-         beStrictAboutCoverageMetadata="true"
+         requireCoverageMetadata="false"
+         beStrictAboutCoverageMetadata="false"
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
          failOnWarning="true">
     <testsuites>
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
-        </testsuite>
-        <testsuite name="Integration">
-            <directory>tests/Integration</directory>
+        <testsuite name="Application">
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
@@ -24,14 +21,6 @@
             <directory>src</directory>
         </include>
     </source>
-
-    <coverage>
-        <report>
-            <html outputDirectory="coverage"/>
-            <clover outputFile="coverage/clover.xml"/>
-        </report>
-    </coverage>
-
     <php>
         <env name="APP_ENV" value="testing"/>
     </php>

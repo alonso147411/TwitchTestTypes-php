@@ -1,69 +1,99 @@
 <?php
 
-namespace TwitchAnalytics\Tests;
+namespace TwitchAnalytics\Aplication\Services;
 
-use PHPUnit\Framework\MockObject\Exception;
+use DateTime;
+use Mockery;
 use PHPUnit\Framework\TestCase;
+use TwitchAnalytics\Application\Services\TimeProvider;
 use TwitchAnalytics\Application\Services\UserAccountService;
 use TwitchAnalytics\Domain\Exceptions\UserNotFoundException;
 use TwitchAnalytics\Domain\Interfaces\UserRepositoryInterface;
 use TwitchAnalytics\Domain\Models\User;
 
-/**
- * @coversDefaultClass \TwitchAnalytics\Application\Services\UserAccountService
- * @covers \TwitchAnalytics\Application\Services\UserAccountService::getAccountAge
- * @covers \TwitchAnalytics\Domain\Exceptions\UserNotFoundException
- */
 class UserAccountServiceTest extends TestCase
 {
-
-    /**
-     * @test
-     * @throws Exception
-     * @covers ::getAccountAge
-     */
-    public function getAccountAge()
+    private UserRepositoryInterface $userRepository;
+    private TimeProvider $timeProvider;
+    private UserAccountService $userAccountService;
+    protected function setUp(): void
     {
-        $userRepository = $this->createMock(UserRepositoryInterface::class);
-        $userRepository->method('findByDisplayName')->willReturn(
-            new User(
-                '12345',
-                'ninja',
-                'Ninja',
-                '',
-                'partner',
-                'Professional Gamer and Streamer',
-                'https://example.com/ninja.jpg',
-                'https://example.com/ninja-offline.jpg',
-                500000,
-                '2011-11-20T00:00:00Z'
-            )
+        parent::setUp();
+        $this->userRepository = Mockery::mock(UserRepositoryInterface::class);
+        $this->timeProvider = Mockery::mock(TimeProvider::class);
+        $this->userAccountService = new UserAccountService(
+            $this->userRepository,
+            $this->timeProvider
         );
-        $service = new UserAccountService($userRepository);
-        $result = $service->getAccountAge('ninja');
-        $this->assertIsArray($result);
-
     }
 
     /**
      * @test
-     * @throws Exception
-     * @covers ::getAccountAge
+     *
      */
-    public function getAccountAgeWithInvalidUser()
+    public function returnsErrorIfUserDoesNotExist()
     {
-        $userRepository = $this->createMock(UserRepositoryInterface::class);
-        $userRepository->method('findByDisplayName')->willReturn(null);
+        $displayName = 'nonexistent_user';
+        $userAccountService = new UserAccountService($this->userRepository, $this->timeProvider);
 
-        $service = new UserAccountService($userRepository);
+        $this->userRepository->expects('findByDisplayName')
+            ->with($displayName)
+            ->andReturnNull();
 
         $this->expectException(UserNotFoundException::class);
 
-        $this->expectExceptionMessage('No user found with given name: invalid_user');
+        $this->expectExceptionMessage("No user found with given name: {$displayName}");
 
-        $service->getAccountAge('invalid_user');
-
+        $userAccountService->getAccountAge($displayName);
 
     }
 
+    /**
+     * @test
+     *
+     */
+
+    public function getUserAgeIfUserExists()
+    {
+        $displayName = 'TestUser';
+        $createdAt = '2023-01-01T00:00:00Z';
+        $oneYearSinceCreation = new DateTime('2024-01-01T00:00:00Z');
+
+        $user = $this->getUser($displayName, $createdAt);
+
+        $this->userRepository->expects('findByDisplayName')
+            ->with($displayName)
+            ->andReturns($user);
+        $this->timeProvider->expects('now')
+            ->andReturns($oneYearSinceCreation);
+
+        $accountAge = $this->userAccountService->getAccountAge($displayName);
+
+        $this->assertEquals([
+            'name' => $displayName,
+            'days_since_creation' => 365,
+            'created_at' => $createdAt
+        ], $accountAge);
+    }
+
+    /**
+     * @param string $displayName
+     * @param string $createdAt
+     * @return User
+     */
+    public function getUser(string $displayName, string $createdAt): User
+    {
+        return new User(
+            '12345',
+            'ninja',
+            $displayName,
+            '',
+            'partner',
+            'Professional Gamer and Streamer',
+            'https://example.com/ninja.jpg',
+            'https://example.com/ninja-offline.jpg',
+            365,
+            $createdAt
+        );
+    }
 }
